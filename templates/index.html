@@ -1,0 +1,115 @@
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Management</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Blog Management</h1>
+
+        <!-- Form to create a new post -->
+        <div id="create-post">
+            <h2>Create Post</h2>
+            <form id="create-post-form">
+                <input type="text" id="title" placeholder="Title" required>
+                <textarea id="content" placeholder="Content" required></textarea>
+                <input type="text" id="author" placeholder="Author" required>
+                <button type="submit">Create Post</button>
+            </form>
+        </div>
+
+        <!-- List of Posts -->
+        <h2>Posts</h2>
+        <ul id="post-list">
+            <!-- Post items will be added here dynamically -->
+        </ul>
+    </div>
+
+    <script>
+        // Fetch and display all posts
+        async function fetchPosts() {
+            const response = await fetch("/posts/");
+            const posts = await response.json();
+            const postList = document.getElementById("post-list");
+            postList.innerHTML = '';
+            posts.forEach(post => {
+                const postItem = document.createElement("li");
+                postItem.innerHTML = `
+                    <strong>${post.title}</strong> by ${post.author} 
+                    <p>${post.content}</p>
+                    <button onclick="editPost('${post.title}')">Edit</button>
+                    <button onclick="deletePost('${post.title}')">Delete</button>
+                `;
+                postList.appendChild(postItem);
+            });
+        }
+
+        // Create a new post
+        document.getElementById("create-post-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const title = document.getElementById("title").value;
+            const content = document.getElementById("content").value;
+            const author = document.getElementById("author").value;
+
+            const response = await fetch("/posts/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ title, content, author })
+            });
+
+            if (response.ok) {
+                fetchPosts(); // Refresh the post list
+                document.getElementById("create-post-form").reset();
+            } else {
+                alert("Error creating post.");
+            }
+        });
+
+        // Edit a post
+        async function editPost(title) {
+            const newContent = prompt("Enter new content for the post:");
+            const newAuthor = prompt("Enter new author for the post:");
+
+            const response = await fetch(`/posts/${title}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    content: newContent,
+                    author: newAuthor
+                })
+            });
+
+            if (response.ok) {
+                fetchPosts(); // Refresh the post list
+            } else {
+                alert("Error updating post.");
+            }
+        }
+
+        // Delete a post
+        async function deletePost(title) {
+            const response = await fetch(`/posts/${title}`, {
+                method: "DELETE"
+            });
+
+            if (response.ok) {
+                fetchPosts(); // Refresh the post list
+            } else {
+                alert("Error deleting post.");
+            }
+        }
+
+        // Initial load of posts
+        fetchPosts();
+    </script>
+</body>
+</html>
