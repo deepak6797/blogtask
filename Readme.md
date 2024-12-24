@@ -2,7 +2,7 @@
 
 - Create Virtual Env using python 3.12.3
 - python -m venv blogenv
-- source tenv/bin/activate
+- source blogenv/bin/activate
 
 - Install the required python package
 - pip install -r req.txt
